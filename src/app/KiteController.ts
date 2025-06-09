@@ -1,16 +1,48 @@
 import { KiteConnect } from "kiteconnect";
 import { ZerodhaConfig } from "../../secrets/config";
 import { ApiMethods, TransactionType } from "./consts/zerodha.consts";
+import * as fs from "fs";
+import * as path from "path";
+
+const ACCESS_TOKEN_PATH = path.join(__dirname, "../../secrets/access_token.txt");
+
+function saveAccessToken(token: string) {
+    fs.writeFileSync(ACCESS_TOKEN_PATH, token, "utf-8");
+}
+
+function loadAccessToken(): string | null {
+    if (fs.existsSync(ACCESS_TOKEN_PATH)) {
+        return fs.readFileSync(ACCESS_TOKEN_PATH, "utf-8");
+    }
+    return null;
+}
 
 export class KiteController {
     public kc: any;
 
     constructor() {
+        const storedToken = loadAccessToken();
+        if (storedToken) {
+            ZerodhaConfig.accessToken = storedToken;
+        }
         this.kc = new KiteConnect({
             api_key: ZerodhaConfig.apiKey,
-            debug: true
+            debug: false
         });
         this.kc.setAccessToken(ZerodhaConfig.accessToken);
+    }
+
+    public async generateSession(requestToken: string) {
+      try {
+        const response = await this.kc.generateSession(requestToken, ZerodhaConfig.apiSecret);
+        console.log("Session generated:", response);
+        ZerodhaConfig.accessToken = response.access_token;
+        saveAccessToken(response.access_token); // Save to file
+        this.kc.setAccessToken(ZerodhaConfig.accessToken);
+        return "Session generated successfully.";
+      } catch (err) {
+        console.error("Error generating session:", err);
+      }
     }
 
     private async executeApiCall(operationName: ApiMethods, parameters?: object) {
