@@ -12,7 +12,7 @@ function saveAccessToken(token: string) {
 
 function loadAccessToken(): string | null {
     if (fs.existsSync(ACCESS_TOKEN_PATH)) {
-        return fs.readFileSync(ACCESS_TOKEN_PATH, "utf-8");
+        return fs.readFileSync(ACCESS_TOKEN_PATH, "utf-8").trim();
     }
     return null;
 }

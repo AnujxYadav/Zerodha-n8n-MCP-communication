@@ -81,7 +81,7 @@ server.tool("cancel-order", "Cancels a pending order using the order ID and vari
 server.tool("login", "Authenticates the user and provides url for login",
   {},
   async (params) => {
-    const url = kiteController.kc.getLoginURL();
+    const url = await kiteController.kc.getLoginURL();
     return {
       content: [{ type: "text", text: JSON.stringify(url, null, 2) }]
     };
@@ -93,9 +93,9 @@ server.tool("login-using-request-token", "When user provides the request token, 
     request_token: z.string(),
   },
   async (params) => {
-    const token_response = kiteController.generateSession(params.request_token);
+    const token_response = await kiteController.generateSession(params.request_token);
     return {
-      content: [{ type: "text", text: `${token_response}` }]
+      content: [{ type: "text", text: JSON.stringify(token_response, null, 2) }]
     };
   }
 )
